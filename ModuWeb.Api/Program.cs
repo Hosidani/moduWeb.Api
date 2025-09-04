@@ -12,8 +12,18 @@ public class Program
         builder.Services.AddOpenApi();
         builder.Services.AddControllers();
         builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-        
-        var app = builder.Build();
+        builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowFrontend",
+                    policy => policy.WithOrigins("https://localhost:5173")
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod());
+            });
+
+        var app = builder.Build(); // <-- Build the app first
+
+        // Then use the policy:
+        app.UseCors("AllowFrontend");
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
