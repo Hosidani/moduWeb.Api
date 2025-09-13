@@ -89,5 +89,40 @@ namespace ModuWeb.Api.Controllers
                 })
                 .ToListAsync();
         }
+
+        // PUT: api/resources/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateResource(Guid id, [FromBody] ResourceCreateDto dto)
+        {
+            var resource = await _context.Resources.FindAsync(id);
+            if (resource == null)
+                return NotFound();
+
+            resource.Name = dto.Name;
+            resource.Type = dto.Type;
+            resource.Description = dto.Description;
+            resource.IsActive = dto.IsActive;
+            resource.Capacity = dto.Capacity;
+            resource.DefaultBookingLength = dto.DefaultBookingLength;
+            resource.Price = dto.Price;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Resource updated successfully" });
+        }
+
+        // DELETE: api/resources/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteResource(Guid id)
+        {
+            var resource = await _context.Resources.FindAsync(id);
+            if (resource == null)
+                return NotFound();
+
+            _context.Resources.Remove(resource);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Resource deleted successfully" });
+        }
     }
 }
