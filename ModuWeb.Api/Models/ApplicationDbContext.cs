@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ModuWeb.Api.Models.BookingSystem;
 
 namespace ModuWeb.Api.Models
 {
@@ -10,5 +11,8 @@ namespace ModuWeb.Api.Models
         }
 
         public DbSet<ApplicationUser> Users { get; set; }
+        public DbSet<Resource> Resources { get; set; }
+        public DbSet<Booking> Bookings { get; set; }
+        public DbSet<Availability> Availabilities { get; set; }
     }
 }
