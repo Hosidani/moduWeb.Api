@@ -113,26 +113,7 @@ namespace ModuWeb.Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<int?>("Capacity")
-                        .HasColumnType("integer");
-
-                    b.Property<TimeSpan?>("DefaultBookingLength")
-                        .HasColumnType("interval");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("text");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<decimal?>("Price")
-                        .HasColumnType("numeric");
-
-                    b.Property<string>("Type")
+                    b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("text");
 

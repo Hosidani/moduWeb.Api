@@ -23,13 +23,7 @@ namespace ModuWeb.Api.Controllers
         {
             var resource = new Resource
             {
-                Name = dto.Name,
-                Type = dto.Type,
-                Description = dto.Description,
-                IsActive = dto.IsActive,
-                Capacity = dto.Capacity,
-                DefaultBookingLength = dto.DefaultBookingLength,
-                Price = dto.Price
+                Content = dto.Content
             };
 
             _context.Add(resource);
@@ -38,13 +32,7 @@ namespace ModuWeb.Api.Controllers
             var result = new ResourceDto
             {
                 Id = resource.Id,
-                Name = resource.Name,
-                Type = resource.Type,
-                Description = resource.Description,
-                IsActive = resource.IsActive,
-                Capacity = resource.Capacity,
-                DefaultBookingLength = resource.DefaultBookingLength,
-                Price = resource.Price
+                Content = resource.Content
             };
 
             return CreatedAtAction(nameof(GetResource), new { id = resource.Id }, result);
@@ -61,13 +49,7 @@ namespace ModuWeb.Api.Controllers
             return new ResourceDto
             {
                 Id = resource.Id,
-                Name = resource.Name,
-                Type = resource.Type,
-                Description = resource.Description,
-                IsActive = resource.IsActive,
-                Capacity = resource.Capacity,
-                DefaultBookingLength = resource.DefaultBookingLength,
-                Price = resource.Price
+                Content = resource.Content
             };
         }
 
@@ -79,13 +61,7 @@ namespace ModuWeb.Api.Controllers
                 .Select(resource => new ResourceDto
                 {
                     Id = resource.Id,
-                    Name = resource.Name,
-                    Type = resource.Type,
-                    Description = resource.Description,
-                    IsActive = resource.IsActive,
-                    Capacity = resource.Capacity,
-                    DefaultBookingLength = resource.DefaultBookingLength,
-                    Price = resource.Price
+                    Content = resource.Content
                 })
                 .ToListAsync();
         }
@@ -98,13 +74,7 @@ namespace ModuWeb.Api.Controllers
             if (resource == null)
                 return NotFound();
 
-            resource.Name = dto.Name;
-            resource.Type = dto.Type;
-            resource.Description = dto.Description;
-            resource.IsActive = dto.IsActive;
-            resource.Capacity = dto.Capacity;
-            resource.DefaultBookingLength = dto.DefaultBookingLength;
-            resource.Price = dto.Price;
+            resource.Content = dto.Content;
 
             await _context.SaveChangesAsync();
 
