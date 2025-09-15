@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using ModuWeb.Api.Models.BookingSystem;
-using ModuWeb.Api.Models.BookingSystem.ResourceDtos;
 using ModuWeb.Api.Models;
+using ModuWeb.Api.Models.ResourceSystem;
+using ModuWeb.Api.Models.ResourceSystem.ResourceDtos;
+
 
 namespace ModuWeb.Api.Controllers
 {

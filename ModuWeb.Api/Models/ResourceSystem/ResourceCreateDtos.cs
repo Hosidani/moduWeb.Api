@@ -1,4 +1,4 @@
-namespace ModuWeb.Api.Models.BookingSystem.ResourceDtos
+namespace ModuWeb.Api.Models.ResourceSystem.ResourceDtos
 {
     public class ResourceCreateDto
     {
