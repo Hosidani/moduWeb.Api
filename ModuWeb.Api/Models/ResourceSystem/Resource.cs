@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace ModuWeb.Api.Models.BookingSystem
+namespace ModuWeb.Api.Models.ResourceSystem
 {
     public class Resource
     {
