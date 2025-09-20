@@ -7,18 +7,29 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
+
         // Add services to the container.
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
         builder.Services.AddControllers();
         builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
         builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowFrontend",
-                    policy => policy.WithOrigins("https://localhost:5173")
-                                    .AllowAnyHeader()
-                                    .AllowAnyMethod());
-            });
+        {
+            options.AddPolicy("AllowFrontend",
+                policy => policy.WithOrigins("https://localhost:5173")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod());
+        });
+
+        // Register SmtpEmailService with config from appsettings
+        builder.Services.AddSingleton(provider =>
+            new ModuWeb.Api.Services.SmtpEmailService(
+                smtpHost: builder.Configuration["Smtp:Host"] ?? "smtp.example.com",
+                smtpPort: int.TryParse(builder.Configuration["Smtp:Port"], out var port) ? port : 587,
+                smtpUser: builder.Configuration["Smtp:User"] ?? "user@example.com",
+                smtpPass: builder.Configuration["Smtp:Pass"] ?? "password",
+                fromAddress: builder.Configuration["Smtp:From"] ?? "noreply@example.com"
+            ));
 
         var app = builder.Build(); // <-- Build the app first
 
