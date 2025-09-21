@@ -23,11 +23,11 @@ namespace ModuWeb.Api.Controllers
             var hasher = new PasswordHasher<ApplicationUser>();
             var user = new ApplicationUser
             {
-                UserName = userDto.UserName,
-                Email = userDto.Email,
+                UserName = userDto.UserName ?? throw new ArgumentNullException(nameof(userDto.UserName)),
+                Email = userDto.Email ?? throw new ArgumentNullException(nameof(userDto.Email)),
                 // other properties
             };
-            user.PasswordHash = hasher.HashPassword(user, userDto.Password);
+            user.PasswordHash = hasher.HashPassword(user, userDto.Password ?? throw new ArgumentNullException(nameof(userDto.Password)));
 
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
