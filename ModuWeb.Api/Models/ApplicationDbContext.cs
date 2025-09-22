@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using ModuWeb.Api.Models.ResourceSystem;
 
 namespace ModuWeb.Api.Models
 {
@@ -10,5 +11,6 @@ namespace ModuWeb.Api.Models
         }
 
         public DbSet<ApplicationUser> Users { get; set; }
+        public DbSet<Resource> Resources { get; set; }
     }
 }
