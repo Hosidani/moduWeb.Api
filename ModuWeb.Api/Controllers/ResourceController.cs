@@ -12,10 +12,12 @@ namespace ModuWeb.Api.Controllers
     public class ResourceController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly ModuWeb.Api.Services.IReminderService _reminderService;
 
-        public ResourceController(ApplicationDbContext context)
+        public ResourceController(ApplicationDbContext context, ModuWeb.Api.Services.IReminderService reminderService)
         {
             _context = context;
+            _reminderService = reminderService;
         }
 
         // POST: api/resources
@@ -29,6 +31,9 @@ namespace ModuWeb.Api.Controllers
 
             _context.Add(resource);
             await _context.SaveChangesAsync();
+
+            // Schedule reminder if reminderTime is present
+            _reminderService.ScheduleReminder(resource.Content);
 
             var result = new ResourceDto
             {
