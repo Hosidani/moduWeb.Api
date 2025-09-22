@@ -1,4 +1,3 @@
-
 using Microsoft.EntityFrameworkCore;
 using ModuWeb.Api.Models;
 using Hangfire;
@@ -16,9 +15,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
-        policy => policy.WithOrigins("https://localhost:5173")
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
+        policy => policy
+            .WithOrigins("https://localhost:5173", "https://hosidani.dev")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
 });
 
 // Register SmtpEmailService with config from appsettings
