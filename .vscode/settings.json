@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/8dd364b8-4d78-49fe-8c4c-92e6d88c341c/resourceGroups/moduweb-rg/providers/Microsoft.Web/sites/ModuWebApi",
+    "appService.deploySubpath": "ModuWeb.Api"
+}
