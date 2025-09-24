@@ -24,11 +24,14 @@ namespace ModuWeb.Api.Controllers
 
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ProductDto>>> GetProducts()
+        public async Task<ActionResult<IEnumerable<object>>> GetProducts()
         {
             var resources = await _context.Resources.ToListAsync();
             var products = resources
-                .Select(r => JsonSerializer.Deserialize<ProductDto>(r.Content))
+                .Select(r => {
+                    var product = JsonSerializer.Deserialize<ProductDto>(r.Content);
+                    return product == null ? null : new { id = r.Id, content = product };
+                })
                 .Where(p => p != null)
                 .ToList();
             return products;
@@ -36,7 +39,7 @@ namespace ModuWeb.Api.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ProductDto>> GetProduct(Guid id)
+        public async Task<ActionResult<object>> GetProduct(Guid id)
         {
             var resource = await _context.Resources.FindAsync(id);
             if (resource == null)
@@ -44,8 +47,9 @@ namespace ModuWeb.Api.Controllers
             var product = JsonSerializer.Deserialize<ProductDto>(resource.Content);
             if (product == null)
                 return NotFound();
-            return product;
+            return new { id = resource.Id, content = product };
         }
+
 
 
         [HttpPost]
