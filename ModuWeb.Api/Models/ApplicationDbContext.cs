@@ -10,7 +10,7 @@ namespace ModuWeb.Api.Models
         {
         }
 
-        public DbSet<ApplicationUser> Users { get; set; }
-        public DbSet<Resource> Resources { get; set; }
+    public DbSet<ApplicationUser> Users { get; set; }
+    public DbSet<Resource> Resources { get; set; }
     }
 }
