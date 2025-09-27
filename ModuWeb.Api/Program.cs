@@ -18,6 +18,7 @@ builder.Logging.AddConsole();
 // Register ReminderService
 builder.Services.AddSingleton<ModuWeb.Api.Services.IReminderService, ModuWeb.Api.Services.ReminderService>();
 
+
 // Add services to the container.
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
@@ -28,7 +29,18 @@ builder.Services.AddCors(options =>
         policy => policy
             .WithOrigins("https://localhost:5173", "https://hosidani.dev")
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials() // <-- Add this line!
+    );
+});
+
+// Add session services
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(1);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
 
 // Register SmtpEmailService with config from appsettings
@@ -65,7 +77,11 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
+
 app.UseCors("AllowFrontend");
+
+// Add session middleware
+app.UseSession();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ModuWeb.Api.Models;
@@ -39,28 +39,45 @@ namespace ModuWeb.Api.Controllers
         }
 
         [HttpPost("add")]
-        public async Task<IActionResult> AddToCart([FromBody] CartAddRequest request)
+        public IActionResult AddToCart([FromBody] CartAddRequest request)
         {
             var cart = GetCart();
-            var resource = await _context.Resources.FindAsync(request.ProductId);
-            if (resource == null)
-                return NotFound(new { message = "Product not found" });
-            var product = JsonSerializer.Deserialize<ProductDto>(resource.Content);
-            if (product == null)
-                return NotFound(new { message = "Product data invalid" });
+            Console.WriteLine($"[Cart DEBUG] AddToCart called: ProductId={request.ProductId}, Quantity={request.Quantity}");
             var existing = cart.FirstOrDefault(x => x.ProductId == request.ProductId);
             if (existing != null)
             {
                 existing.Quantity += request.Quantity;
+                Console.WriteLine($"[Cart DEBUG] Updated quantity for ProductId={request.ProductId}: {existing.Quantity}");
             }
             else
             {
+                // Fetch product details from DB
+                var resource = _context.Resources.Find(request.ProductId);
+                string name = "";
+                int stock = 0;
+                if (resource != null)
+                {
+                    try
+                    {
+                        var product = JsonSerializer.Deserialize<ProductDto>(resource.Content);
+                        if (product != null)
+                        {
+                            name = product.Name ?? "";
+                            stock = product.Stock;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Cart DEBUG] Error deserializing product: {ex.Message}");
+                    }
+                }
                 cart.Add(new CartItem {
                     ProductId = request.ProductId,
                     Quantity = request.Quantity,
-                    Stock = product.Stock,
-                    Name = product.Name
+                    Stock = stock,
+                    Name = name
                 });
+                Console.WriteLine($"[Cart DEBUG] Added new item to cart: ProductId={request.ProductId}, Quantity={request.Quantity}, Name={name}, Stock={stock}");
             }
             SaveCart(cart);
             return Ok(cart);
@@ -70,21 +87,70 @@ namespace ModuWeb.Api.Controllers
         public IActionResult RemoveFromCart([FromBody] CartRemoveRequest request)
         {
             var cart = GetCart();
+            Console.WriteLine($"[Cart DEBUG] RemoveFromCart called: ProductId={request.ProductId}");
             var item = cart.FirstOrDefault(x => x.ProductId == request.ProductId);
             if (item != null)
             {
                 cart.Remove(item);
+                Console.WriteLine($"[Cart DEBUG] Removed item from cart: ProductId={request.ProductId}");
+            }
+            else
+            {
+                Console.WriteLine($"[Cart DEBUG] Item not found in cart: ProductId={request.ProductId}");
             }
             SaveCart(cart);
             return Ok(cart);
         }
 
         [HttpPost("reserve")]
-        public IActionResult ReserveStock()
+        public async Task<IActionResult> ReserveStock()
         {
             var cart = GetCart();
-            // For demo: just print reservation
-            Console.WriteLine($"[Cart DEBUG] Reserving stock for cart: {JsonSerializer.Serialize(cart)}");
+            Console.WriteLine($"[Cart DEBUG] ReserveStock called");
+            var errors = new List<object>();
+            var updatedResources = new List<ModuWeb.Api.Models.ResourceSystem.Resource>();
+            foreach (var item in cart)
+            {
+                var resource = await _context.Resources.FindAsync(item.ProductId);
+                if (resource == null)
+                {
+                    errors.Add(new { item.ProductId, error = "Product not found" });
+                    Console.WriteLine($"[Cart DEBUG] Product not found: ProductId={item.ProductId}");
+                    continue;
+                }
+                var product = JsonSerializer.Deserialize<ProductDto>(resource.Content);
+                if (product == null)
+                {
+                    errors.Add(new { item.ProductId, error = "Product data invalid" });
+                    Console.WriteLine($"[Cart DEBUG] Product data invalid: ProductId={item.ProductId}");
+                    continue;
+                }
+                if (item.Quantity > product.Stock)
+                {
+                    errors.Add(new { item.ProductId, error = $"Not enough stock. Requested: {item.Quantity}, Available: {product.Stock}" });
+                    Console.WriteLine($"[Cart DEBUG] Not enough stock: ProductId={item.ProductId}, Requested={item.Quantity}, Available={product.Stock}");
+                    continue;
+                }
+                // Reduce stock in DB (reserve)
+                product.Stock -= item.Quantity;
+                resource.Content = JsonSerializer.Serialize(product);
+                updatedResources.Add(resource);
+                Console.WriteLine($"[Cart DEBUG] Reserved stock: ProductId={item.ProductId}, Reserved={item.Quantity}, Remaining={product.Stock}");
+            }
+            if (errors.Count > 0)
+            {
+                Console.WriteLine($"[Cart DEBUG] Reservation failed: {JsonSerializer.Serialize(errors)}");
+                return BadRequest(new { errors });
+            }
+
+            // Save updated stock for all products
+            foreach (var res in updatedResources)
+            {
+                _context.Resources.Update(res);
+            }
+            await _context.SaveChangesAsync();
+
+            Console.WriteLine($"[Cart DEBUG] Reserved stock for cart: {JsonSerializer.Serialize(cart)}");
             return Ok(new { reserved = true, cart });
         }
 
@@ -92,13 +158,15 @@ namespace ModuWeb.Api.Controllers
         public IActionResult Checkout()
         {
             var cart = GetCart();
-            // For demo: just print checkout
+            Console.WriteLine($"[Cart DEBUG] Checkout called");
             Console.WriteLine($"[Cart DEBUG] Checkout for cart: {JsonSerializer.Serialize(cart)}");
-            // Optionally clear cart after checkout
             HttpContext.Session.Remove(CartSessionKey);
+            Console.WriteLine($"[Cart DEBUG] Cart cleared after checkout");
             return Ok(new { success = true, cart });
         }
 
-// ...existing code...
+        // Simple reservation release logic:
+        // If session expires or user removes items from cart, reserved stock is not restored in DB in this demo.
+        // In a real system, use a background job to restore stock for expired sessions.
     }
 }
