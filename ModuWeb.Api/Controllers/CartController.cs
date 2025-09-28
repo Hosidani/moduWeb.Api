@@ -142,7 +142,7 @@ namespace ModuWeb.Api.Controllers
                     Quantity = item.Quantity,
                     SessionId = sessionId,
                     ReservedAt = now,
-                    ExpiresAt = now.AddMinutes(15), // Expires in 15 min
+                    ExpiresAt = now.AddMinutes(1), // Expires in 15 min
                     Status = "active",
                     OrderId = null
                 };
