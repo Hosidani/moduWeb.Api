@@ -109,6 +109,9 @@ namespace ModuWeb.Api.Controllers
             Console.WriteLine($"[Cart DEBUG] ReserveStock called");
             var errors = new List<object>();
             var updatedResources = new List<ModuWeb.Api.Models.ResourceSystem.Resource>();
+            var reservations = new List<ModuWeb.Api.Models.Reservations.StockReservation>();
+            var now = DateTime.UtcNow;
+            var sessionId = HttpContext.Session.Id;
             foreach (var item in cart)
             {
                 var resource = await _context.Resources.FindAsync(item.ProductId);
@@ -131,6 +134,20 @@ namespace ModuWeb.Api.Controllers
                     Console.WriteLine($"[Cart DEBUG] Not enough stock: ProductId={item.ProductId}, Requested={item.Quantity}, Available={product.Stock}");
                     continue;
                 }
+                // Create reservation
+                var reservation = new ModuWeb.Api.Models.Reservations.StockReservation
+                {
+                    Id = Guid.NewGuid(),
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    SessionId = sessionId,
+                    ReservedAt = now,
+                    ExpiresAt = now.AddMinutes(15), // Expires in 15 min
+                    Status = "active",
+                    OrderId = null
+                };
+                reservations.Add(reservation);
+                Console.WriteLine($"[Cart DEBUG] Created reservation: ProductId={item.ProductId}, Quantity={item.Quantity}, SessionId={sessionId}, ReservedAt={now}, ExpiresAt={reservation.ExpiresAt}");
                 // Reduce stock in DB (reserve)
                 product.Stock -= item.Quantity;
                 resource.Content = JsonSerializer.Serialize(product);
@@ -148,9 +165,15 @@ namespace ModuWeb.Api.Controllers
             {
                 _context.Resources.Update(res);
             }
+            // Save reservations
+            foreach (var r in reservations)
+            {
+                _context.StockReservations.Add(r);
+            }
             await _context.SaveChangesAsync();
 
             Console.WriteLine($"[Cart DEBUG] Reserved stock for cart: {JsonSerializer.Serialize(cart)}");
+            Console.WriteLine($"[Cart DEBUG] Saved {reservations.Count} reservations to DB");
             return Ok(new { reserved = true, cart });
         }
 
