@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
+using ModuWeb.Api.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,6 +18,7 @@ builder.Logging.AddConsole();
 
 // Register ReminderService
 builder.Services.AddSingleton<ModuWeb.Api.Services.IReminderService, ModuWeb.Api.Services.ReminderService>();
+builder.Services.AddScoped<ModuWeb.Api.Services.IReservationReleaseService, ModuWeb.Api.Services.ReservationReleaseService>();
 
 // Add services to the container.
 builder.Services.AddOpenApi();
@@ -28,7 +30,18 @@ builder.Services.AddCors(options =>
         policy => policy
             .WithOrigins("https://localhost:5173", "https://hosidani.dev")
             .AllowAnyHeader()
-            .AllowAnyMethod());
+            .AllowAnyMethod()
+            .AllowCredentials() // <-- Add this line!
+    );
+});
+
+// Add session services
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(1);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
 
 // Register SmtpEmailService with config from appsettings
@@ -65,7 +78,11 @@ app.UseExceptionHandler(errorApp =>
     });
 });
 
+
 app.UseCors("AllowFrontend");
+
+// Add session middleware
+app.UseSession();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -95,6 +112,13 @@ app.MapGet("/weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+// Recurring job to release expired reservations
+RecurringJob.AddOrUpdate<IReservationReleaseService>(
+    "release-expired-reservations",
+    service => service.ReleaseExpiredReservationsAsync(),
+    Cron.Minutely // or use Cron.MinuteInterval(5) for every 5 minutes
+);
 
 app.Run();
 

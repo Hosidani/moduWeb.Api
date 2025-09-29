@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ModuWeb.Api.Services;
 
 namespace ModuWeb.Api.Controllers
 {
@@ -27,7 +28,6 @@ namespace ModuWeb.Api.Controllers
             _context = context;
             DebugLog("ProductController initialized");
         }
-
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetProducts([FromQuery] string? category = null)
@@ -60,32 +60,23 @@ namespace ModuWeb.Api.Controllers
             return products;
         }
 
-
         [HttpGet("{id}")]
-        public async Task<ActionResult<object>> GetProduct(Guid id)
+        public async Task<ActionResult<object>> GetProduct(Guid id, [FromQuery] string? elements)
         {
-            DebugLog($"GetProduct called with id: {id}");
-            var resource = await _context.Resources.FindAsync(id);
-            if (resource == null)
+            if (!string.IsNullOrWhiteSpace(elements))
             {
-                DebugLog($"Resource not found for id: {id}");
-                return NotFound();
+                var fieldList = elements.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var dict = await ResourceParser.ParseElementsAsync(_context, id, fieldList);
+
+                if (dict.Count == 0) return NotFound();
+                return new { id, content = dict };
             }
-            try {
-                var product = JsonSerializer.Deserialize<ProductDto>(resource.Content);
-                if (product == null)
-                {
-                    DebugLog($"Deserialization returned null for id: {id}");
-                    return NotFound();
-                }
-                return new { id = resource.Id, content = product };
-            } catch (Exception ex) {
-                DebugLog($"Deserialization error for id: {id}: {ex.Message}");
-                return StatusCode(500, $"Deserialization error: {ex.Message}");
-            }
+
+            var product = await ResourceParser.ParseAsync<ProductDto>(_context, id);
+            if (product == null) return NotFound();
+
+            return new { id, content = product };
         }
-
-
 
         [HttpPost]
         public async Task<ActionResult<ProductDto>> CreateProduct(ProductDto product)
@@ -101,7 +92,6 @@ namespace ModuWeb.Api.Controllers
             DebugLog($"Product created with id: {resource.Id}");
             return CreatedAtAction(nameof(GetProduct), new { id = resource.Id }, product);
         }
-
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateProduct(Guid id, ProductDto product)
