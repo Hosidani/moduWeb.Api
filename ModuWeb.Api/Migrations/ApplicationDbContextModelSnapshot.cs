@@ -44,6 +44,35 @@ namespace ModuWeb.Api.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("ModuWeb.Api.Models.Payments.Transaction", b =>
+                {
+                    b.Property<Guid>("TransactionId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Currency")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OrderId")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PaymentProvider")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("text");
+
+                    b.HasKey("TransactionId");
+
+                    b.ToTable("Transactions");
+                });
+
             modelBuilder.Entity("ModuWeb.Api.Models.Reservations.StockReservation", b =>
                 {
                     b.Property<Guid>("Id")
