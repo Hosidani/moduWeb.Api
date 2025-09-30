@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using ModuWeb.Api.Helpers;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +17,14 @@ namespace ModuWeb.Api.Controllers
     [Route("api/[controller]")]
     public class CartController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
+    private readonly ApplicationDbContext _context;
+    private readonly CartHelper _cartHelper;
         private const string CartSessionKey = "Cart";
 
         public CartController(ApplicationDbContext context)
         {
             _context = context;
+            _cartHelper = new CartHelper(_context);
         }
 
         private List<CartItem> GetCart()
@@ -181,12 +184,20 @@ namespace ModuWeb.Api.Controllers
         [HttpPost("checkout")]
         public IActionResult Checkout()
         {
-            var cart = GetCart();
-            Console.WriteLine($"[Cart DEBUG] Checkout called");
-            Console.WriteLine($"[Cart DEBUG] Checkout for cart: {JsonSerializer.Serialize(cart)}");
-            HttpContext.Session.Remove(CartSessionKey);
-            Console.WriteLine($"[Cart DEBUG] Cart cleared after checkout");
-            return Ok(new { success = true, cart });
+            var sessionId = HttpContext.Session.Id;
+            Console.WriteLine($"[Cart DEBUG] Checkout called for SessionId={sessionId}");
+            try
+            {
+                (string orderId, decimal totalAmount) = _cartHelper.CheckoutSession(sessionId);
+                HttpContext.Session.Remove(CartSessionKey);
+                Console.WriteLine($"[Cart DEBUG] Cart cleared after checkout");
+                return Ok(new { success = true, orderId, totalAmount });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Cart DEBUG] Checkout error: {ex.Message}");
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         // Simple reservation release logic:
