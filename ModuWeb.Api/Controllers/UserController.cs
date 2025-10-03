@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -24,34 +20,27 @@ namespace ModuWeb.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<ReadUserDto>> CreateUser(CreateUserDto userDto)
         {
-            try
+            var hasher = new PasswordHasher<ApplicationUser>();
+            var user = new ApplicationUser
             {
-                var hasher = new PasswordHasher<ApplicationUser>();
-                var user = new ApplicationUser
-                {
-                    UserName = userDto.UserName ?? throw new ArgumentNullException(nameof(userDto.UserName)),
-                    Email = userDto.Email ?? throw new ArgumentNullException(nameof(userDto.Email)),
-                    // other properties
-                };
-                user.PasswordHash = hasher.HashPassword(user, userDto.Password ?? throw new ArgumentNullException(nameof(userDto.Password)));
+                UserName = userDto.UserName ?? throw new ArgumentNullException(nameof(userDto.UserName)),
+                Email = userDto.Email ?? throw new ArgumentNullException(nameof(userDto.Email)),
+                // other properties
+            };
+            user.PasswordHash = hasher.HashPassword(user, userDto.Password ?? throw new ArgumentNullException(nameof(userDto.Password)));
 
-                _context.Users.Add(user);
-                await _context.SaveChangesAsync();
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
 
-                var result = new ReadUserDto
-                {
-                    Id = user.Id,
-                    UserName = user.UserName,
-                    Email = user.Email
-                };
-
-                return CreatedAtAction(nameof(GetUser), new { id = user.Id }, result);
-            }
-            catch (Exception ex)
+            var result = new ReadUserDto
             {
-                Console.WriteLine("Error in CreateUser: " + ex);
-                return StatusCode(500, ex.ToString());
-            }
+                Id = user.Id,
+                UserName = user.UserName,
+                Email = user.Email
+
+            };
+
+            return CreatedAtAction(nameof(GetUser), new { id = user.Id }, result);
         }
 
         // GET: api/users/{id}
@@ -119,21 +108,6 @@ namespace ModuWeb.Api.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "User deleted successfully" });
-        }
-
-        // GET: api/users/test-error
-        [HttpGet("test-error-endpoint")]
-        public IActionResult TestError()
-        {
-            try
-            {
-                throw new Exception("Test exception for logging!");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("TestError endpoint: " + ex);
-                return StatusCode(500, ex.ToString());
-            }
         }
     }
 }

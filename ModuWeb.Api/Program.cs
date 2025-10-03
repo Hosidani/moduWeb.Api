@@ -1,19 +1,10 @@
-using System;
+
 using Microsoft.EntityFrameworkCore;
 using ModuWeb.Api.Models;
 using Hangfire;
 using Hangfire.MemoryStorage;
-using System.Linq;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
-
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Logging.AddConsole();
 
 // Register ReminderService
 builder.Services.AddSingleton<ModuWeb.Api.Services.IReminderService, ModuWeb.Api.Services.ReminderService>();
@@ -25,10 +16,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseNpgsql
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",
-        policy => policy
-            .WithOrigins("https://localhost:5173", "https://hosidani.dev")
-            .AllowAnyHeader()
-            .AllowAnyMethod());
+        policy => policy.WithOrigins("https://localhost:5173")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
 });
 
 // Register SmtpEmailService with config from appsettings
@@ -47,23 +37,6 @@ builder.Services.AddHangfire(config =>
 builder.Services.AddHangfireServer();
 
 var app = builder.Build();
-
-// Global exception handler middleware
-app.UseExceptionHandler(errorApp =>
-{
-    errorApp.Run(async context =>
-    {
-        var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-        var error = context.Features.Get<Microsoft.AspNetCore.Diagnostics.IExceptionHandlerFeature>()?.Error;
-        if (error != null)
-        {
-            logger.LogError(error, "Unhandled exception");
-        }
-
-        context.Response.StatusCode = 500;
-        await context.Response.WriteAsJsonAsync(new { error = error?.Message });
-    });
-});
 
 app.UseCors("AllowFrontend");
 
@@ -98,7 +71,7 @@ app.MapGet("/weatherforecast", () =>
 
 app.Run();
 
-public record WeatherForecast(DateOnly Date, int TemperatureC, string Summary)
+public record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
