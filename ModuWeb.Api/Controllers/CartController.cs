@@ -116,6 +116,7 @@ namespace ModuWeb.Api.Controllers
             var reservations = new List<ModuWeb.Api.Models.Reservations.StockReservation>();
             var now = DateTime.UtcNow;
             var sessionId = HttpContext.Session.Id;
+            Console.WriteLine($"[Cart DEBUG] ReserveStock sessionId={sessionId}");
             foreach (var item in cart)
             {
                 var resource = await _context.Resources.FindAsync(item.ProductId);
@@ -146,7 +147,7 @@ namespace ModuWeb.Api.Controllers
                     Quantity = item.Quantity,
                     SessionId = sessionId,
                     ReservedAt = now,
-                    ExpiresAt = now.AddMinutes(1), // Expires in 15 min
+                    ExpiresAt = now.AddMinutes(15), // Expires in 15 min
                     Status = "active",
                     OrderId = null
                 };
