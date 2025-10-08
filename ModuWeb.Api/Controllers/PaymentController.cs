@@ -1,8 +1,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using ModuWeb.Api.Models.Payments;
 using ModuWeb.Api.Models;
+using ModuWeb.Api.Models.Transactions;
 
 namespace ModuWeb.Api.Controllers
 {
@@ -62,5 +62,32 @@ namespace ModuWeb.Api.Controllers
             await _context.SaveChangesAsync();
             return Ok();
         }
+        // STRIPE PAYMENT INTENT ENDPOINT
+        [HttpPost("create-payment-intent")]
+        public async Task<IActionResult> CreatePaymentIntent([FromBody] CreatePaymentIntentRequest request)
+        {
+            // TODO: Move key to config/secret store
+            Stripe.StripeConfiguration.ApiKey = "sk_test_your_secret_key"; // Replace with your Stripe secret key
+
+            var options = new Stripe.PaymentIntentCreateOptions
+            {
+                Amount = (long)(request.Amount * 100), // Stripe expects amount in the smallest currency unit
+                Currency = request.Currency ?? "sek",
+                Metadata = new System.Collections.Generic.Dictionary<string, string>
+                {
+                    { "orderId", request.OrderId }
+                }
+            };
+            var service = new Stripe.PaymentIntentService();
+            var paymentIntent = await service.CreateAsync(options);
+            return Ok(new { clientSecret = paymentIntent.ClientSecret });
+        }
+    }
+
+    public class CreatePaymentIntentRequest
+    {
+        public string OrderId { get; set; }
+        public decimal Amount { get; set; }
+        public string Currency { get; set; }
     }
 }

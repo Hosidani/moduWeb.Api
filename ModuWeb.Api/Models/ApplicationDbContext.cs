@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ModuWeb.Api.Models.ResourceSystem;
 using ModuWeb.Api.Models.Reservations;
-using ModuWeb.Api.Models.Payments;
+using ModuWeb.Api.Models.Transactions;
 
 namespace ModuWeb.Api.Models
 {
