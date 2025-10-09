@@ -179,7 +179,7 @@ namespace ModuWeb.Api.Controllers
 
             Console.WriteLine($"[Cart DEBUG] Reserved stock for cart: {JsonSerializer.Serialize(cart)}");
             Console.WriteLine($"[Cart DEBUG] Saved {reservations.Count} reservations to DB");
-            return Ok(new { reserved = true, cart });
+            return Ok(new { reserved = true, cart, sessionId });
         }
 
         [HttpPost("checkout")]
