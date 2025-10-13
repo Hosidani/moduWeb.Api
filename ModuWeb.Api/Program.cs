@@ -96,9 +96,31 @@ app.MapGet("/weatherforecast", () =>
 })
 .WithName("GetWeatherForecast");
 
+
+// Database connection check at startup
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var db = services.GetRequiredService<ApplicationDbContext>();
+        logger.LogInformation("Testing database connection...");
+        db.Database.OpenConnection();
+        logger.LogInformation("Database connection successful! Connection string: {ConnectionString}", db.Database.GetDbConnection().ConnectionString);
+        db.Database.CloseConnection();
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Database connection failed! Check your connection string and database server.");
+    }
+}
+
 app.Run();
 
 public record WeatherForecast(DateOnly Date, int TemperatureC, string Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+
