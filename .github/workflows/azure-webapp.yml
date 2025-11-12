@@ -32,7 +32,7 @@ jobs:
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'ModuWebApi' # <--- Ditt Azure Web App-namn
+          app-name: 'moduwebapi-fccvbzccghd2h8am'
           slot-name: 'production'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ModuWeb.Api/publish
