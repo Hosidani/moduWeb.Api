@@ -18,6 +18,9 @@ builder.Logging.AddConsole();
 // Register ReminderService
 builder.Services.AddSingleton<ModuWeb.Api.Services.IReminderService, ModuWeb.Api.Services.ReminderService>();
 
+// Register ConversionService
+builder.Services.AddScoped<ModuWeb.Api.Services.IConversionService, ModuWeb.Api.Services.ConversionService>();
+
 // Add services to the container.
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
