@@ -1,6 +1,3 @@
-# GitHub Actions workflow for deploying .NET Web API to Azure Web App
-# Replace AZURE_WEBAPP_NAME and AZURE_RESOURCE_GROUP with your actual values
-
 name: Deploy .NET Web API to Azure Web App
 
 on:
@@ -29,10 +26,9 @@ jobs:
       - name: Publish
         run: dotnet publish ModuWeb.Api/ModuWeb.Api.csproj --configuration Release --output ModuWeb.Api/publish --no-build
 
-      - name: Deploy to Azure Web App
+      - name: Deploy to Azure Web App (Zip Deploy)
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'moduwebapi-fccvbzccghd2h8am'
+          app-name: 'moduwebapi-fccvbzccghd2h8am' 
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ModuWeb.Api/publish
-          slot-name: ''
