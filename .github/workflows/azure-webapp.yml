@@ -29,6 +29,6 @@ jobs:
       - name: Deploy to Azure Web App (Zip Deploy)
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'ModuWebApi' 
+          app-name: 'ModuWebApi'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ModuWeb.Api/publish
