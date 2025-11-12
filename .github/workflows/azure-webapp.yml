@@ -27,7 +27,7 @@ jobs:
         run: dotnet build ModuWeb.Api/ModuWeb.Api.csproj --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish ModuWeb.Api/ModuWeb.Api.csproj --configuration Release --output ./publish --no-build
+        run: dotnet publish ModuWeb.Api/ModuWeb.Api.csproj --configuration Release --output ModuWeb.Api/publish --no-build
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
@@ -35,4 +35,4 @@ jobs:
           app-name: 'ModuWebApi' # <--- Ditt Azure Web App-namn
           slot-name: 'production'
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ./publish
+          package: ModuWeb.Api/publish
